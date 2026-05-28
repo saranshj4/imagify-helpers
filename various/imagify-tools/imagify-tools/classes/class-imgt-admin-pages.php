@@ -74,13 +74,19 @@ class IMGT_Admin_Pages {
 				'page_title' => __( 'Logs', 'imagify-tools' ),
 				'menu_title' => __( 'Logs', 'imagify-tools' ),
 			),
+			$prefix . '-ros'  => array(
+				'data'       => 'ROS',
+				'view'       => 'ROS',
+				'page_title' => __( 'ROS', 'imagify-tools' ),
+				'menu_title' => __( 'ROS', 'imagify-tools' ),
+			),
 		);
 	}
 
 	/**
 	 * Get the main Instance.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 *
 	 * @return object Main instance.
@@ -96,7 +102,7 @@ class IMGT_Admin_Pages {
 	/**
 	 * Delete the main Instance.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 */
 	public static function delete_instance() {
@@ -122,25 +128,27 @@ class IMGT_Admin_Pages {
 	 * Create the menu items.
 	 * It also launches the hooks that will load the page data and init the view.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 */
 	public function create_menus() {
 		global $submenu;
 
 		$capability   = imagify_tools_get_capacity();
-		$current_page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_STRING );
+		$current_page = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
 
 		foreach ( self::$pages_data as $query_arg => $args ) {
 			if ( self::MAIN_PAGE_SLUG === $query_arg ) {
 				$screen_id = add_menu_page( $args['page_title'], $args['menu_title'], $capability, $query_arg, array( $this->get_view(), 'render_page' ) );
 			} else {
-				$screen_id = add_submenu_page( self::MAIN_PAGE_SLUG, $args['page_title'], $args['menu_title'], $capability, $query_arg, array( $this->get_view(), 'render_page' ) );
+				$screen_id = add_submenu_page( self::MAIN_PAGE_SLUG, $args['page_title'], $args['menu_title'], $capability, $query_arg, array( $this, 'render_custom_ros_fallback' ) );
 			}
 
 			if ( $query_arg === $current_page ) {
 				self::$current_page = $query_arg;
-				add_action( 'load-' . $screen_id, array( $this, 'load_model_and_init_view' ) );
+				if ( 'imgt-ros' !== $query_arg ) {
+					add_action( 'load-' . $screen_id, array( $this, 'load_model_and_init_view' ) );
+				}
 			}
 		}
 
@@ -150,9 +158,26 @@ class IMGT_Admin_Pages {
 	}
 
 	/**
+	 * Render routing callback for the custom ROS panel template view.
+	 *
+	 * @since 1.1.5
+	 */
+	public function render_custom_ros_fallback() {
+		if ( 'imgt-ros' === self::$current_page ) {
+			if ( file_exists( IMAGIFY_TOOLS_VIEWS_PATH . 'part-settings-troubleshooting.php' ) ) {
+				echo '<div class="wrap">';
+				include IMAGIFY_TOOLS_VIEWS_PATH . 'part-settings-troubleshooting.php';
+				echo '</div>';
+			}
+		} else {
+			$this->get_view()->render_page();
+		}
+	}
+
+	/**
 	 * Get the view.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 *
 	 * @return object
@@ -168,7 +193,7 @@ class IMGT_Admin_Pages {
 	/**
 	 * Load the model handling the page data and the view that handles the page template.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 */
 	public function load_model_and_init_view() {
@@ -181,7 +206,7 @@ class IMGT_Admin_Pages {
 	/**
 	 * Get the current page ID.
 	 *
-	 * @since  1.0
+	 * @since   1.0
 	 * @author Grégory Viguier
 	 *
 	 * @return string
