@@ -19,7 +19,7 @@ $reset_url = wp_nonce_url( admin_url( 'admin-post.php?action=imagify_ros_reset' 
 ?>
 
 <div class="card" style="margin-top: 20px; padding: 20px; border-left: 4px solid #00bbcf;">
-    <h2 style="margin-top: 0; color: #00bbcf;">Optimization Request Reset (ROS Engine)</h2>
+    <h2 style="margin-top: 0; color: #00bbcf;">Reset Optimization State Engine</h2>
     <p>Monitor and terminate stuck queues or background processes in real time.</p>
     
     <table class="widefat fixed" style="margin-bottom: 20px; max-width: 600px;">
