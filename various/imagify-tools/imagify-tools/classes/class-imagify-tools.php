@@ -62,37 +62,40 @@ class Imagify_Tools {
 	}
 	
 	/**
- * Force clear Imagify transients, stuck media batches, and background actions.
- */
-public function process_ros_reset() {
-    if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( 'Unauthorized' );
-    }
-    
-    check_admin_referer( 'imagify_ros_action' );
+	 * Force clear Imagify transients, stuck media batches, and background actions.
+	 *
+	 * @since  1.1.5
+	 */
+	public function process_ros_reset() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Unauthorized' );
+		}
+		
+		check_admin_referer( 'imagify_ros_action' );
 
-    global $wpdb;
+		global $wpdb;
 
-    // 1. Flush Transients
-    $wpdb->query( "DELETE FROM $wpdb->options WHERE option_name LIKE '_transient_imagify_%' OR option_name LIKE '_transient_timeout_imagify_%'" );
+		// 1. Flush Transients
+		$wpdb->query( "DELETE FROM $wpdb->options WHERE option_name LIKE '_transient_imagify_%' OR option_name LIKE '_transient_timeout_imagify_%'" );
 
-    // 2. Erase Active Batches
-    $wpdb->query( "DELETE FROM $wpdb->options WHERE option_name LIKE 'imagify_optimize_media_batch_%'" );
+		// 2. Erase Active Batches
+		$wpdb->query( "DELETE FROM $wpdb->options WHERE option_name LIKE 'imagify_optimize_media_batch_%'" );
 
-    // 3. Clear Action Scheduler Tracks
-    if ( function_exists( 'as_unschedule_all_actions' ) ) {
-        as_unschedule_all_actions( 'imagify_optimize_media' );
-        as_unschedule_all_actions( 'imagify_convert_next_gen' );
-    }
+		// 3. Clear Action Scheduler Tracks
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( 'imagify_optimize_media' );
+			as_unschedule_all_actions( 'imagify_convert_next_gen' );
+		}
 
-    // 4. Object Cache Flush
-    if ( function_exists( 'wp_cache_flush' ) ) {
-        wp_cache_flush();
-    }
+		// 4. Object Cache Flush
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+		}
 
-    wp_safe_redirect( admin_url( 'tools.php?page=imagify-tools&reset=success' ) );
-    exit;
-}
+		wp_safe_redirect( admin_url( 'admin.php?page=imgt-ros&reset=success' ) );
+		exit;
+	}
+
 	/**
 	 * Get the main Instance.
 	 *
@@ -121,6 +124,7 @@ public function process_ros_reset() {
 
 	/**
 	 * Class init.
+	 * Model and view are loaded later in the 'load-*' hook.
 	 *
 	 * @since  1.0
 	 * @author Grégory Viguier
